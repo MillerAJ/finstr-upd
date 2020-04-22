@@ -130,7 +130,9 @@ xbrl_get_data <- function(elements, xbrl_vars,
     dplyr::inner_join(xbrl_vars$context, by = "contextId") %>%
     dplyr::select_(~contextId ,  ~startDate ,  ~endDate ,  ~elementId ,  ~fact ,  ~decimals) %>%
     #dplyr::add_rownames() %>% 
-    tidyr::spread_("elementId", "fact") %>%
+    reshape2::dcast(formula = contextId + 
+                startDate + endDate + decimals ~ elementId, value.var = "fact", 
+                fun.aggregate = mean) %>%
     dplyr::arrange_(~endDate)
   
 
