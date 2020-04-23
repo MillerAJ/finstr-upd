@@ -1,16 +1,19 @@
 Package: finstr
 Type: Package
 Title: Financial Statements in R
-Version: 0.1.2.9000
-Date: 2017-02-13
-Author: Darko Bergant
-Maintainer: Darko Bergant <darko.bergant@gmail.com>
-URL: https://github.com/bergant/finstr
+Version: 0.1.3
+Date: 2020-04-23
+Author: Darko Bergant, edit Jonathan Fluharty
+Maintainer: Jonathan Fluharty <Jonathan.Fluharty@mail.wvu.edu>
+URL: https://github.com/Karnner2/finstr-upd
 Description: Data structures and functions for manipulating financial
     statements. Using parsed XBRL data and validating statement consistency.
     Merging statements from different periods or different statement types.
     Calculating custom financial ratios and creating custom statements
-    by aggregating financial categories.
+    by aggregating financial categories. (Updated to use reshape2 rather 
+    than spread so that the financial statements merge correctly without 
+    fail. Additionally see companion update to XBRL package (XBRL-upd) which
+    corrects the http/https error for schema download. https://github.com/Karnner2/XBRL-upd)
 Depends:
     R (>= 2.10)
 License: GPL-2
