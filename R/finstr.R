@@ -84,9 +84,9 @@ xbrl_get_statement_ids <- function(xbrl_vars) {
     stop(substitute(xbrl_vars), " does not include role and calculation data.")
   
   xbrl_vars$role %>%
-    dplyr::filter_(~type == "Statement") %>%
+    dplyr::filter(~type == "Statement") %>%
     dplyr::semi_join(xbrl_vars$calculation, by = "roleId") %>%
-    dplyr::select_(~roleId) %>%
+    dplyr::select(~roleId) %>%
     simplify2array() %>%
     unname()
 }
@@ -116,24 +116,24 @@ xbrl_get_data <- function(elements, xbrl_vars,
 
   min_dec <- min(as.numeric(res$decimals), na.rm = TRUE)
   
-  context_filter <- res %>% dplyr::filter_(~level == min_level) %>%
+  context_filter <- res %>% dplyr::filter(~level == min_level) %>%
     getElement("contextId") %>% unique
 
-  decimals_filter <- res %>% dplyr::filter_(~level == min_level) %>%
+  decimals_filter <- res %>% dplyr::filter(~level == min_level) %>%
     getElement("decimals") %>%  unique
   
   res <-
     res %>%
-    dplyr::filter_(~contextId %in% context_filter) %>% 
-    dplyr::filter_(~decimals %in% decimals_filter) %>% 
-    dplyr::mutate_(fact = ~as.numeric(fact), decimals = ~min_dec )%>%
+    dplyr::filter(~contextId %in% context_filter) %>% 
+    dplyr::filter(~decimals %in% decimals_filter) %>% 
+    dplyr::mutate(fact = ~as.numeric(fact), decimals = ~min_dec )%>%
     dplyr::inner_join(xbrl_vars$context, by = "contextId") %>%
-    dplyr::select_(~contextId ,  ~startDate ,  ~endDate ,  ~elementId ,  ~fact ,  ~decimals) %>%
+    dplyr::select(~contextId ,  ~startDate ,  ~endDate ,  ~elementId ,  ~fact ,  ~decimals) %>%
     #dplyr::add_rownames() %>% 
     reshape2::dcast(formula = contextId + 
                 startDate + endDate + decimals ~ elementId, value.var = "fact", 
                 fun.aggregate = mean) %>%
-    dplyr::arrange_(~endDate)
+    dplyr::arrange(~endDate)
   
 
   vec1 <- elements$elementId[! elements$elementId %in% names(res)]
@@ -158,11 +158,11 @@ xbrl_get_data <- function(elements, xbrl_vars,
   if(basic_contexts) {
     context_filter2 <-
       res %>% 
-      dplyr::group_by_(~startDate, ~endDate) %>% 
-      dplyr::summarise_(min_context = ~contextId[nchar(contextId) == min(nchar(contextId))]) %>% 
+      dplyr::group_by(~startDate, ~endDate) %>% 
+      dplyr::summarise(min_context = ~contextId[nchar(contextId) == min(nchar(contextId))]) %>% 
       getElement("min_context")
     
-    res <- res %>% dplyr::filter_(~contextId %in% context_filter2)
+    res <- res %>% dplyr::filter(~contextId %in% context_filter2)
   }
   
   if(complete_first)
@@ -192,11 +192,11 @@ xbrl_get_elements <- function(xbrl_vars, relations) {
       stringsAsFactors = FALSE
       )  %>%
     dplyr::left_join(xbrl_vars$element, by = c("elementId")) %>%
-    #dplyr::filter_(~type == "xbrli:monetaryItemType") %>% 
+    #dplyr::filter(~type == "xbrli:monetaryItemType") %>% 
     dplyr::left_join(relations, by = c("elementId" = "toElementId")) %>%
     dplyr::left_join(xbrl_vars$label, by = c("elementId")) %>%
-    dplyr::filter_(~labelRole == "http://www.xbrl.org/2003/role/label") %>% 
-    dplyr::transmute_(~elementId, parentId = ~fromElementId, ~order, ~balance, ~labelString)
+    dplyr::filter(~labelRole == "http://www.xbrl.org/2003/role/label") %>% 
+    dplyr::transmute(~elementId, parentId = ~fromElementId, ~order, ~balance, ~labelString)
   
   elements <- get_elements_h(elements)
   
@@ -216,9 +216,9 @@ get_elements_h <- function(elements) {
   # adds level, hierarchical id and terminal column  
   level <- 1
   df1 <- elements %>%
-    dplyr::filter_(~is.na(parentId)) %>%
+    dplyr::filter(~is.na(parentId)) %>%
     dplyr::mutate(id = "") %>% 
-    dplyr::arrange_(~dplyr::desc(balance))
+    dplyr::arrange(~dplyr::desc(balance))
 
   while({
     level_str <- 
@@ -234,11 +234,11 @@ get_elements_h <- function(elements) {
       "id"] <- level_str
     
     df1 <- elements %>%
-      dplyr::filter_(~parentId %in% df1$elementId) %>%
-      dplyr::arrange_(~order) %>%
-      dplyr::select_(~elementId, ~parentId) %>%
+      dplyr::filter(~parentId %in% df1$elementId) %>%
+      dplyr::arrange(~order) %>%
+      dplyr::select(~elementId, ~parentId) %>%
       dplyr::left_join(elements, by=c("parentId"="elementId")) %>%
-      dplyr::arrange_(~id)
+      dplyr::arrange(~id)
     nrow(df1) > 0})
   {
     level <- level + 1
@@ -246,8 +246,8 @@ get_elements_h <- function(elements) {
 
   elements <- 
     elements %>%  
-    dplyr::arrange_(~id) %>% 
-    dplyr::mutate_( terminal = ~ !elementId %in% parentId )
+    dplyr::arrange(~id) %>% 
+    dplyr::mutate( terminal = ~ !elementId %in% parentId )
 }
 
 #' Get relations from XBRL calculation link base
@@ -260,8 +260,8 @@ xbrl_get_relations <- function(xbrl_vars, role_id, lbase = "calculation") {
   
   res <- 
     xbrl_vars[[lbase]] %>%
-    dplyr::filter_(~roleId == role_id) %>%
-    dplyr::select_(~fromElementId, ~toElementId, ~order) %>% 
+    dplyr::filter(~roleId == role_id) %>%
+    dplyr::select(~fromElementId, ~toElementId, ~order) %>% 
     dplyr::mutate(order = as.numeric(order)) %>%
     dplyr::arrange(order) %>% 
     unique() 
@@ -399,13 +399,13 @@ get_elements <- function(x, parent_id = NULL, all = TRUE) {
     }
     id_parent <- elements[["id"]][children]
     elements <- elements %>%
-      dplyr::filter_(~substring(id, 1, nchar(id_parent)) == id_parent) %>%
+      dplyr::filter(~substring(id, 1, nchar(id_parent)) == id_parent) %>%
       as.elements()
 
   }
   if(!all) {
     elements <- elements %>%
-      dplyr::filter_(~terminal) %>%
+      dplyr::filter(~terminal) %>%
       dplyr::mutate(level = 1) %>%
       as.elements()
   }
@@ -651,7 +651,7 @@ merge.statements <- function(x, y, replace_na = TRUE, ...) {
 #' @export
 calculate <- function(x, ..., digits = NULL, decimals = NULL, calculations = NULL) {
   # calculate
-  res <- dplyr::transmute_(x, date = ~endDate, .dots = c(lazyeval::lazy_dots(... ),calculations))
+  res <- dplyr::transmute(x, date = ~endDate, .dots = c(lazyeval::lazy_dots(... ),calculations))
   # remove hidden columns (leading dots)
   res <- res[grep("^[^\\.]", names(res))]
   # rounding results
@@ -779,13 +779,13 @@ reshape_long <- function(x, levels = NULL) {
 
   x %>%
     tidyr::gather_("elementId", "value", elements[["elementId"]], convert = FALSE) %>%
-    dplyr::mutate_("elementId" = ~as.character(elementId)) %>%
+    dplyr::mutate("elementId" = ~as.character(elementId)) %>%
     dplyr::inner_join(elements, by = "elementId") %>%
-    dplyr::filter_(~!is.na(parentId) & level %in% levels ) %>%
-    dplyr::select_(date = ~endDate, element = ~elementId, parent = ~parentId, ~value, 
+    dplyr::filter(~!is.na(parentId) & level %in% levels ) %>%
+    dplyr::select(date = ~endDate, element = ~elementId, parent = ~parentId, ~value, 
             label = ~labelString, ~decimals, element_id = ~id) %>%
     dplyr::left_join(elements, by = c("parent" = "elementId")) %>%
-    dplyr::select_(~date, ~element, ~parent, ~value, ~label, 
+    dplyr::select(~date, ~element, ~parent, ~value, ~label, 
             parent_label = ~labelString, ~decimals, 
             ~element_id,  parent_id = ~id)
 
