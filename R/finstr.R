@@ -320,7 +320,7 @@ xbrl_get_statements <- function(xbrl_vars, rm_prefix = "us-gaap_",
   
   #get calculation link base relations
   relations <- lapply(role_ids, function(role_id){
-    xbrl_get_relations(xbrl_vars = xbrl_vars, role_id = role_id, lbase = lbase)
+    xbrl_get_relations(xbrl_vars = xbrl_vars, role_ids = role_ids, lbase = lbase)
   })
   with_content <- vapply(relations, function(x) nrow(x) > 0, logical(1))
   if(!any(with_content)) {
